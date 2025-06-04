@@ -48,6 +48,9 @@
             this.cmbalimento = new System.Windows.Forms.ComboBox();
             this.comboBoxUsuarios = new System.Windows.Forms.ComboBox();
             this.label2 = new System.Windows.Forms.Label();
+            this.button3 = new System.Windows.Forms.Button();
+            this.dataGridViewProductosAgregados = new System.Windows.Forms.DataGridView();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridViewProductosAgregados)).BeginInit();
             this.SuspendLayout();
             // 
             // label1
@@ -255,6 +258,26 @@
             this.label2.TabIndex = 28;
             this.label2.Text = "id usuario ";
             // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(383, 486);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(75, 23);
+            this.button3.TabIndex = 29;
+            this.button3.Text = "AGREGAR";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
+            // 
+            // dataGridViewProductosAgregados
+            // 
+            this.dataGridViewProductosAgregados.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridViewProductosAgregados.Location = new System.Drawing.Point(61, 83);
+            this.dataGridViewProductosAgregados.Name = "dataGridViewProductosAgregados";
+            this.dataGridViewProductosAgregados.RowHeadersWidth = 51;
+            this.dataGridViewProductosAgregados.RowTemplate.Height = 24;
+            this.dataGridViewProductosAgregados.Size = new System.Drawing.Size(240, 150);
+            this.dataGridViewProductosAgregados.TabIndex = 30;
+            // 
             // Form3
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -262,6 +285,8 @@
             this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(881, 511);
+            this.Controls.Add(this.dataGridViewProductosAgregados);
+            this.Controls.Add(this.button3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.comboBoxUsuarios);
             this.Controls.Add(this.cmbalimento);
@@ -285,6 +310,7 @@
             this.Name = "Form3";
             this.Text = "Form3";
             this.Load += new System.EventHandler(this.Form3_Load);
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridViewProductosAgregados)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -311,5 +337,7 @@
         private System.Windows.Forms.ComboBox cmbalimento;
         private System.Windows.Forms.ComboBox comboBoxUsuarios;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.DataGridView dataGridViewProductosAgregados;
     }
 }

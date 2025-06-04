@@ -149,6 +149,7 @@
             this.comboBoxUsuarios.Name = "comboBoxUsuarios";
             this.comboBoxUsuarios.Size = new System.Drawing.Size(121, 24);
             this.comboBoxUsuarios.TabIndex = 13;
+            this.comboBoxUsuarios.SelectedIndexChanged += new System.EventHandler(this.comboBoxUsuarios_SelectedIndexChanged);
             // 
             // label2
             // 

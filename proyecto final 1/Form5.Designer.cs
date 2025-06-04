@@ -40,6 +40,8 @@
             this.txtFechaAlimentacion = new System.Windows.Forms.TextBox();
             this.comboBoxUsuarios = new System.Windows.Forms.ComboBox();
             this.comboBoxUnidad = new System.Windows.Forms.ComboBox();
+            this.comboBoxProductos = new System.Windows.Forms.ComboBox();
+            this.label2 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // label1
@@ -152,6 +154,7 @@
             this.comboBoxUsuarios.Name = "comboBoxUsuarios";
             this.comboBoxUsuarios.Size = new System.Drawing.Size(121, 24);
             this.comboBoxUsuarios.TabIndex = 15;
+            this.comboBoxUsuarios.SelectedIndexChanged += new System.EventHandler(this.comboBoxUsuarios_SelectedIndexChanged);
             // 
             // comboBoxUnidad
             // 
@@ -161,6 +164,27 @@
             this.comboBoxUnidad.Size = new System.Drawing.Size(121, 24);
             this.comboBoxUnidad.TabIndex = 16;
             // 
+            // comboBoxProductos
+            // 
+            this.comboBoxProductos.FormattingEnabled = true;
+            this.comboBoxProductos.Location = new System.Drawing.Point(196, 99);
+            this.comboBoxProductos.Name = "comboBoxProductos";
+            this.comboBoxProductos.Size = new System.Drawing.Size(121, 24);
+            this.comboBoxProductos.TabIndex = 17;
+            this.comboBoxProductos.SelectedIndexChanged += new System.EventHandler(this.comboBoxProductos_SelectedIndexChanged);
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.BackColor = System.Drawing.Color.Transparent;
+            this.label2.Font = new System.Drawing.Font("Javanese Text", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label2.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.label2.Location = new System.Drawing.Point(87, 97);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(111, 32);
+            this.label2.TabIndex = 18;
+            this.label2.Text = "ID PRODUCTO";
+            // 
             // Form5
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -169,6 +193,8 @@
             this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
             this.ClientSize = new System.Drawing.Size(733, 375);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.comboBoxProductos);
             this.Controls.Add(this.comboBoxUnidad);
             this.Controls.Add(this.comboBoxUsuarios);
             this.Controls.Add(this.txtFechaAlimentacion);
@@ -202,5 +228,7 @@
         private System.Windows.Forms.TextBox txtFechaAlimentacion;
         private System.Windows.Forms.ComboBox comboBoxUsuarios;
         private System.Windows.Forms.ComboBox comboBoxUnidad;
+        private System.Windows.Forms.ComboBox comboBoxProductos;
+        private System.Windows.Forms.Label label2;
     }
 }

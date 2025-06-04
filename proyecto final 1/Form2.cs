@@ -14,6 +14,7 @@ namespace proyecto_final_1
     public partial class Form2 : Form
     {
         private string connectionString = "Data Source=LAPTOP-R1VO187T\\SQLEXPRESS;Initial Catalog=Proyecto;Integrated Security=True";
+        private int idUsuario;
 
         public Form2()
         {
@@ -30,7 +31,7 @@ namespace proyecto_final_1
             conexion c = new conexion();
 
             // Cargar los idUsuario en el ComboBox como opciones de autocompletado
-            string queryUsuarios = "SELECT idUsuario FROM paciente";
+            string queryUsuarios = "SELECT idUsuario, nombres + ' ' + apellidos AS nombreCompleto FROM paciente";
 
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
@@ -40,11 +41,15 @@ namespace proyecto_final_1
                     SqlCommand command = new SqlCommand(queryUsuarios, connection);
                     SqlDataReader reader = command.ExecuteReader();
 
+                    DataTable dtUsuarios = new DataTable();
+                    dtUsuarios.Load(reader);
+
+                    comboBoxUsuarios.DataSource = dtUsuarios;
+                    comboBoxUsuarios.DisplayMember = "nombreCompleto"; 
+                    comboBoxUsuarios.ValueMember = "idUsuario";       
+
                     // Llenar el ComboBox con los idUsuario de la tabla paciente
-                    while (reader.Read())
-                    {
-                        comboBoxUsuarios.Items.Add(reader["idUsuario"].ToString());
-                    }
+                    
 
                     // Habilitar AutoComplete en el ComboBox
                     comboBoxUsuarios.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
@@ -61,17 +66,16 @@ namespace proyecto_final_1
 
         private void button1_Click(object sender, EventArgs e)
         {
-            //string RegistroPaciente = txtRegistroPaciente.Text;
 
-            /*int IdUsuario;
-            if (!int.TryParse(txtIdUsuario.Text, out IdUsuario))
+
+            if (comboBoxUsuarios.SelectedValue != null && int.TryParse(comboBoxUsuarios.SelectedValue.ToString(), out idUsuario))
             {
-                MessageBox.Show("ID de usuario inválido.");
-                return;
+                // idUsuario ya tiene el valor correcto para guardar
             }
-            */
-
-            int idUsuario = int.Parse(comboBoxUsuarios.Text);  // Asegúrate de que el TextBox tenga el ID del usuario
+            else
+            {
+                MessageBox.Show("Por favor seleccione un usuario válido.");
+            }
 
             DateTime FechaRegistro;
             if (!DateTime.TryParse(txtFechaRegistro.Text, out FechaRegistro))
@@ -120,10 +124,10 @@ namespace proyecto_final_1
 
         private void siguiente_Click(object sender, EventArgs e)
         {
-            Form3 formulario3 = new Form3();
+            Form5 formulario5 = new Form5();
 
             // Mostrar el segundo formulario
-            formulario3.Show();
+            formulario5.Show();
             this.Hide();
         }
 
@@ -133,6 +137,11 @@ namespace proyecto_final_1
         }
 
         private void label2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void comboBoxUsuarios_SelectedIndexChanged(object sender, EventArgs e)
         {
 
         }

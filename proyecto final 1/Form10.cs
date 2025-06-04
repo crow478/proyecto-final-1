@@ -5,7 +5,12 @@ using System.Windows.Forms;
 using iText.Kernel.Pdf;
 using iText.Layout;
 using iText.Layout.Element;
-
+using iText.Kernel.Colors;
+using iText.Layout.Borders;
+using iText.Layout.Properties;
+using iText.Kernel.Font;
+using iText.IO.Font.Constants;
+using iText.Kernel.Pdf.Canvas.Draw;
 namespace proyecto_final_1
 {
     public partial class Form10 : Form
@@ -29,7 +34,7 @@ namespace proyecto_final_1
         {
             DataTable dt = new DataTable();
 
-            
+
             // Consulta SQL
             string query = @"
 SELECT 
@@ -44,9 +49,9 @@ SELECT
     rp.peso,
     rp.altura,
     ap.fecha_alimentacion,
-    pr.nombreProducto,
-    ap.cantidad_consumo,
-    um.nombreUnidadMedida,
+    STRING_AGG(pr.nombreProducto + ' (' + CAST(ap.cantidad_consumo AS VARCHAR) + ')', ', ') AS productosConsumidos,
+    SUM(ap.cantidad_consumo) AS totalCantidad,
+    STRING_AGG(um.nombreUnidadMedida, ', ') AS unidadesMedida,
     af.tipoActividad,
     af.tiempoSemanal,
     cp.Masa_corporal,
@@ -60,16 +65,22 @@ LEFT JOIN
 LEFT JOIN 
     alimentacion_paciente ap ON p.idUsuario = ap.idUsuario
 LEFT JOIN 
-    producto pr ON ap.idUsuario = p.idUsuario
+    producto pr ON ap.idProducto = pr.idProducto
 LEFT JOIN 
     unidadMedida um ON ap.idUnidadMedida = um.idUnidadMedida
 LEFT JOIN 
     actividad_fisica af ON p.idUsuario = af.idUsuario
 LEFT JOIN 
     calculospaciente cp ON p.idUsuario = cp.idUsuario
-
 WHERE 
-    p.idUsuario = @idUsuario";
+    p.idUsuario = @idUsuario
+GROUP BY
+    p.idUsuario, p.nombres, p.apellidos, p.edad, p.genero, p.municipio, p.departamento,
+    rp.fecha_registro, rp.peso, rp.altura,
+    ap.fecha_alimentacion,
+    af.tipoActividad, af.tiempoSemanal,
+    cp.Masa_corporal, cp.CaloriasDiarias, cp.CaloriasRecomendadas, cp.Recomendaciones";
+
 
             // Crear la conexión
             using (SqlConnection connection = new SqlConnection(connectionString))
@@ -130,57 +141,77 @@ WHERE
 
         private void button2_Click(object sender, EventArgs e)
         {
-            // Intenta obtener el idUsuario del TextBox
             if (int.TryParse(textBoxIdUsuario.Text, out int idUsuario))
             {
-                // Define la ruta base del documento
                 string basePath = @"C:\Users\Notebook\Documents\";
-                // Crea el nombre del archivo dinámicamente usando el idUsuario
                 string fileName = $"Paciente_{idUsuario}.pdf";
-                // Combina la ruta base y el nombre del archivo
                 string pdfPath = System.IO.Path.Combine(basePath, fileName);
 
-                // Obtener los datos desde la base de datos utilizando el método correcto
                 DataTable dt = ObtenerDatosUsuario(idUsuario);
 
-                // Crear el escritor PDF (PdfWriter)
                 PdfWriter writer = new PdfWriter(pdfPath);
-
-                // Crear el documento PDF (PdfDocument)
                 PdfDocument pdf = new PdfDocument(writer);
-
-                // Crear el objeto Document para agregar contenido al PDF
                 Document document = new Document(pdf);
 
-                // Agregar un título al documento
-                document.Add(new Paragraph("Datos del Paciente"));
+                // Fuente para el título
+                PdfFont fontTitle = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
+                Paragraph titulo = new Paragraph("Datos del Paciente")
+                    .SetFont(fontTitle)
+                    .SetFontSize(18)
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontColor(ColorConstants.BLUE)
+                    .SetMarginBottom(20);
 
-                // Recorrer las filas del DataTable y agregar los datos al PDF
+                document.Add(titulo);
+
+                // Fuente para etiquetas y contenido
+                PdfFont fontLabel = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
+                PdfFont fontValue = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
+
                 foreach (DataRow row in dt.Rows)
                 {
-                    document.Add(new Paragraph($"ID Usuario: {row["idUsuario"]}"));
-                    document.Add(new Paragraph($"Nombre: {row["nombres"]} {row["apellidos"]}"));
-                    document.Add(new Paragraph($"Edad: {row["edad"]}"));
-                    document.Add(new Paragraph($"Género: {row["genero"]}"));
-                    document.Add(new Paragraph($"Municipio: {row["municipio"]}"));
-                    document.Add(new Paragraph($"Departamento: {row["departamento"]}"));
-                    document.Add(new Paragraph($"Fecha de Registro: {row["fecha_registro"]}"));
-                    document.Add(new Paragraph($"Peso: {row["peso"]}"));
-                    document.Add(new Paragraph($"Altura: {row["altura"]}"));
-                    document.Add(new Paragraph($"Fecha Alimentación: {row["fecha_alimentacion"]}"));
-                    document.Add(new Paragraph($"Producto: {row["nombreProducto"]}"));
-                    document.Add(new Paragraph($"Cantidad Consumo: {row["cantidad_consumo"]}"));
-                    document.Add(new Paragraph($"Unidad de Medida: {row["nombreUnidadMedida"]}"));
-                    document.Add(new Paragraph($"Tipo Actividad: {row["tipoActividad"]}"));
-                    document.Add(new Paragraph($"Tiempo Semanal: {row["tiempoSemanal"]}"));
-                    document.Add(new Paragraph($"Masa Corporal: {row["Masa_corporal"]}"));
-                    document.Add(new Paragraph($"Calorías Diarias: {row["CaloriasDiarias"]}"));
-                    document.Add(new Paragraph($"Calorías Recomendadas: {row["CaloriasRecomendadas"]}"));
-                    document.Add(new Paragraph($"Recomendaciones: {row["Recomendaciones"]}"));
-                    document.Add(new Paragraph("\n"));  // Agrega un salto de línea entre los registros
+                    // Crear tabla para organizar datos en dos columnas (Etiqueta - Valor)
+                    Table tabla = new Table(UnitValue.CreatePercentArray(new float[] { 30, 70 })).UseAllAvailableWidth();
+
+                    void AddRow(string label, string value)
+                    {
+                        Cell cellLabel = new Cell().Add(new Paragraph(label).SetFont(fontLabel).SetFontSize(12).SetFontColor(ColorConstants.DARK_GRAY));
+                        Cell cellValue = new Cell().Add(new Paragraph(value).SetFont(fontValue).SetFontSize(12));
+                        cellLabel.SetBorder(Border.NO_BORDER);
+                        cellValue.SetBorder(Border.NO_BORDER);
+                        tabla.AddCell(cellLabel);
+                        tabla.AddCell(cellValue);
+                    }
+
+                    AddRow("ID Usuario:", row["idUsuario"].ToString());
+                    AddRow("Nombre:", $"{row["nombres"]} {row["apellidos"]}");
+                    AddRow("Edad:", row["edad"].ToString());
+                    AddRow("Género:", row["genero"].ToString());
+                    AddRow("Municipio:", row["municipio"].ToString());
+                    AddRow("Departamento:", row["departamento"].ToString());
+                    AddRow("Fecha de Registro:", Convert.ToDateTime(row["fecha_registro"]).ToString("dd/MM/yyyy"));
+                    AddRow("Peso:", row["peso"].ToString());
+                    AddRow("Altura:", row["altura"].ToString());
+                    AddRow("Fecha Alimentación:", Convert.ToDateTime(row["fecha_alimentacion"]).ToString("dd/MM/yyyy"));
+                    AddRow("Productos Consumidos:", row["productosConsumidos"].ToString());
+                    AddRow("Cantidad Consumo:", row["totalCantidad"].ToString());
+                    AddRow("Unidad de Medida:", row["unidadesMedida"].ToString());
+                    AddRow("Tipo Actividad:", row["tipoActividad"].ToString());
+                    AddRow("Tiempo Semanal:", row["tiempoSemanal"].ToString());
+                    AddRow("Masa Corporal:", row["Masa_corporal"].ToString());
+                    AddRow("Calorías Diarias:", row["CaloriasDiarias"].ToString());
+                    AddRow("Calorías Recomendadas:", row["CaloriasRecomendadas"].ToString());
+                    AddRow("Recomendaciones:", row["Recomendaciones"].ToString());
+
+                    document.Add(tabla);
+
+                    // Línea separadora entre registros
+                    document.Add(new Paragraph("\n"));
+                    LineSeparator ls = new LineSeparator(new SolidLine());
+                    document.Add(ls);
+                    document.Add(new Paragraph("\n"));
                 }
 
-                // Cerrar el documento
                 document.Close();
 
                 MessageBox.Show($"PDF del paciente con ID {idUsuario} generado exitosamente como: {fileName}");

@@ -14,6 +14,7 @@ namespace proyecto_final_1
     public partial class Form6 : Form
     {
         private string connectionString = "Data Source=LAPTOP-R1VO187T\\SQLEXPRESS;Initial Catalog=Proyecto;Integrated Security=True";
+        private int usuario;
 
         public Form6()
         {
@@ -27,7 +28,14 @@ namespace proyecto_final_1
 
         private void button1_Click(object sender, EventArgs e)
         {
-            int usuario = int.Parse(comboBoxUsuarios.Text);
+            if (comboBoxUsuarios.SelectedValue != null && int.TryParse(comboBoxUsuarios.SelectedValue.ToString(), out usuario))
+            {
+                // idUsuario ya tiene el valor correcto para guardar
+            }
+            else
+            {
+                MessageBox.Show("Por favor seleccione un usuario válido.");
+            }
             string TipoActividad = cmbactividad.SelectedItem.ToString();
             int TiempoSemanal = int.Parse(txttiempo.Text);
 
@@ -74,27 +82,26 @@ namespace proyecto_final_1
             conexion conexion = new conexion();
 
             // Cargar los idUsuario en el ComboBox como opciones de autocompletado
-            string queryUsuarios = "SELECT idUsuario FROM paciente";
+            string queryUsuarios = "SELECT idUsuario, nombres + ' ' + apellidos AS nombreCompleto FROM paciente";
 
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
                 try
                 {
                     connection.Open();
-                    SqlCommand command = new SqlCommand(queryUsuarios, connection);
-                    SqlDataReader reader = command.ExecuteReader();
+                    // Cargar usuarios
+        using (SqlCommand commandUsuarios = new SqlCommand(queryUsuarios, connection))
+        {
+            SqlDataAdapter adapterUsuarios = new SqlDataAdapter(commandUsuarios);
+            DataTable dtUsuarios = new DataTable();
+            adapterUsuarios.Fill(dtUsuarios);
 
-                    // Llenar el ComboBox con los idUsuario de la tabla paciente
-                    while (reader.Read())
-                    {
-                        comboBoxUsuarios.Items.Add(reader["idUsuario"].ToString());
-                    }
-
-                    // Habilitar AutoComplete en el ComboBox
-                    comboBoxUsuarios.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
-                    comboBoxUsuarios.AutoCompleteSource = AutoCompleteSource.ListItems;
-
-                    reader.Close();
+            comboBoxUsuarios.DataSource = dtUsuarios;
+            comboBoxUsuarios.DisplayMember = "nombreCompleto";  // Nombre a mostrar
+            comboBoxUsuarios.ValueMember = "idUsuario";          // Valor interno (ID)
+            comboBoxUsuarios.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            comboBoxUsuarios.AutoCompleteSource = AutoCompleteSource.ListItems;
+        }
                 }
                 catch (Exception ex)
                 {

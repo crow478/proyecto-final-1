@@ -13,8 +13,11 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 namespace proyecto_final_1
 {
     public partial class Form3 : Form
+
+
     {
         private string connectionString = "Data Source=LAPTOP-R1VO187T\\SQLEXPRESS;Initial Catalog=Proyecto;Integrated Security=True";
+        private BindingList<ProductoAgregado> productosAgregados = new BindingList<ProductoAgregado>();
 
         public Form3()
         {
@@ -30,6 +33,9 @@ namespace proyecto_final_1
         {
             conexion conexion = new conexion();
 
+
+            dataGridViewProductosAgregados.DataSource = productosAgregados;
+            dataGridViewProductosAgregados.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
 
 
             // Cargar los idUsuario en el ComboBox como opciones de autocompletado
@@ -71,48 +77,46 @@ namespace proyecto_final_1
 
         private void button1_Click(object sender, EventArgs e)
         {
-            int usuario = int.Parse(comboBoxUsuarios.Text);  // Asegúrate de que el TextBox tenga el ID del usuario
-            string NombreAlimento = cmbalimento.SelectedItem.ToString();
-            string TipoAlimento = cmbproducto.SelectedItem.ToString();
-            double carbohidratosP = double.Parse(carbohidratos.Text);
-            double proteinasP = double.Parse(proteinas.Text);
-            double grasasP = double.Parse(grasas.Text);
-            double energiasP = double.Parse(energias.Text);
-            double CaloriasP = double.Parse(calorias.Text);
+           
 
-            string query = @"INSERT INTO producto (idUsuario,nombreProducto,caloriaProducto,carbohidratoProducto,proteinaProducto,grasasProducto,energiaProducto,tipoproducto)
-                                         VALUES (@idUsuario,@nombreProducto,@caloriaProducto,@carbohidratoProducto,@proteinaProducto,@grasasProducto,@energiaProducto,@tipoproducto)";
-
-            using (SqlConnection conn = new SqlConnection(connectionString)) 
-            using (SqlCommand cmd = new SqlCommand(query, conn))
-
+            if (productosAgregados.Count == 0)
             {
-                // Usar las variables ya convertidas
-                cmd.Parameters.AddWithValue("@idUsuario", usuario);
-                cmd.Parameters.AddWithValue("@nombreProducto", NombreAlimento);
-                cmd.Parameters.AddWithValue("@carbohidratoProducto", carbohidratosP);
-                cmd.Parameters.AddWithValue("@proteinaProducto", proteinasP);
-                cmd.Parameters.AddWithValue("@grasasProducto", grasasP);
-                cmd.Parameters.AddWithValue("@energiaProducto", energiasP);
-                cmd.Parameters.AddWithValue("@caloriaProducto", CaloriasP);
-                cmd.Parameters.AddWithValue("@tipoproducto", TipoAlimento);
-
-
-
-
-                try
-                {
-                    conn.Open();
-                    cmd.ExecuteNonQuery();
-                    MessageBox.Show("Registro guardado exitosamente.");
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Error al guardar: " + ex.Message);
-                }
+                MessageBox.Show("No hay productos agregados para guardar.");
+                return;
             }
 
 
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+
+                foreach (var prod in productosAgregados)
+                {
+                    string query = @"INSERT INTO producto 
+                (nombreProducto, caloriaProducto, carbohidratoProducto, proteinaProducto, grasasProducto, energiaProducto, tipoproducto) 
+                VALUES 
+                ( @nombreProducto, @caloriaProducto, @carbohidratoProducto, @proteinaProducto, @grasasProducto, @energiaProducto, @tipoproducto)";
+
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@nombreProducto", prod.NombreProducto);
+                        cmd.Parameters.AddWithValue("@caloriaProducto", prod.Calorias);
+                        cmd.Parameters.AddWithValue("@carbohidratoProducto", prod.Carbohidratos);
+                        cmd.Parameters.AddWithValue("@proteinaProducto", prod.Proteinas);
+                        cmd.Parameters.AddWithValue("@grasasProducto", prod.Grasas);
+                        cmd.Parameters.AddWithValue("@energiaProducto", prod.Energia);
+                        cmd.Parameters.AddWithValue("@tipoproducto", prod.TipoAlimento);
+
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+
+            MessageBox.Show("Productos guardados correctamente.");
+
+            productosAgregados.Clear();
+            dataGridViewProductosAgregados.DataSource = null;
+            dataGridViewProductosAgregados.DataSource = productosAgregados;
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -225,6 +229,15 @@ namespace proyecto_final_1
                 grasas.Text = "0.2";
                 energias.Text = "52";
                 calorias.Text = "52";
+
+            }
+            else if (seleccion == "AGUACATE")
+            {
+                carbohidratos.Text = "8.5";
+                proteinas.Text = "2";
+                grasas.Text = "15";
+                energias.Text = "160";
+                calorias.Text = "160";
 
             }
             else if (seleccion == "MANGO")
@@ -362,5 +375,46 @@ namespace proyecto_final_1
         {
 
         }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            if (cmbalimento.SelectedItem == null)
+            {
+                MessageBox.Show("Seleccione un alimento para agregar.");
+                return;
+            }
+
+            // Validar campos numéricos
+            if (!double.TryParse(carbohidratos.Text, out double carbohidratosP) ||
+                !double.TryParse(proteinas.Text, out double proteinasP) ||
+                !double.TryParse(grasas.Text, out double grasasP) ||
+                !double.TryParse(energias.Text, out double energiasP) ||
+                !double.TryParse(calorias.Text, out double caloriasP))
+            {
+                MessageBox.Show("Los datos nutricionales deben ser números válidos.");
+                return;
+            }
+
+            productosAgregados.Add(new ProductoAgregado
+            {
+                NombreProducto = cmbalimento.SelectedItem.ToString(),
+                TipoAlimento = cmbproducto.SelectedItem?.ToString() ?? "",
+                Carbohidratos = carbohidratosP,
+                Proteinas = proteinasP,
+                Grasas = grasasP,
+                Energia = energiasP,
+                Calorias = caloriasP
+            });
+        }
+    }
+    public class ProductoAgregado
+    {
+        public string NombreProducto { get; set; }
+        public string TipoAlimento { get; set; }
+        public double Carbohidratos { get; set; }
+        public double Proteinas { get; set; }
+        public double Grasas { get; set; }
+        public double Energia { get; set; }
+        public double Calorias { get; set; }
     }
 }
